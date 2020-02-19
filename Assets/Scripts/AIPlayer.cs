@@ -14,6 +14,9 @@ public class AIPlayer : MonoBehaviour
 
     public Button reset;
 
+    public Text win1;
+    public Text win2;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -26,6 +29,8 @@ public class AIPlayer : MonoBehaviour
         GetTerminalNodes(curNode, terminalNodes);
         Debug.Log("Generated " + terminalNodes.Count + " terminal nodes");
         Debug.Log("Generated " + count + " nodes");
+        win1.text = " ";
+        win2.text = " ";
     }
 
     public void Reboot()
@@ -39,6 +44,8 @@ public class AIPlayer : MonoBehaviour
         GetTerminalNodes(curNode, terminalNodes);
         Debug.Log("Generated " + terminalNodes.Count + " terminal nodes");
         Debug.Log("Generated " + count + " nodes");
+        win1.text = " ";
+        win2.text = " ";
     }
 
     // Update is called once per frame
@@ -283,18 +290,22 @@ public class AIPlayer : MonoBehaviour
             Debug.Log("Computer won!");
             main.gameRunning = false;
             reset.gameObject.SetActive(true);
+            win2.text = "Winner!";
         }
         else if (IsWin('x', curNode.gs) == true)
         {
            Debug.Log("Player won!");
             main.gameRunning = false;
             reset.gameObject.SetActive(true);
+            win1.text = "Winner!";
         }
         else if (IsDraw(curNode.gs) == true)
         {
             Debug.Log("Draw");
             main.gameRunning = false;
             reset.gameObject.SetActive(true);
+            win1.text = "Draw!";
+            win2.text = "Draw!";
         }
     }
 

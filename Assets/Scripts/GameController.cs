@@ -25,6 +25,7 @@ public class GameController : MonoBehaviour
     public Button reset;
     public Text player1;
     public Text player2;
+    
 
 
     // Start is called before the first frame update
