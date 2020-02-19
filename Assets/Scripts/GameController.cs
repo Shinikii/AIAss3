@@ -6,10 +6,11 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-    private StateNode curNode;
+    
     private GameObject[] zones = new GameObject[9];
-    private int count;
     public bool gameRunning = true;
+
+    public AIPlayer bot;
 
     public GameObject spot0;
     public GameObject spot1;
@@ -21,7 +22,9 @@ public class GameController : MonoBehaviour
     public GameObject spot7;
     public GameObject spot8;
 
-    public Text textBox1;
+    public Button reset;
+    public Text player1;
+    public Text player2;
 
 
     // Start is called before the first frame update
@@ -37,151 +40,75 @@ public class GameController : MonoBehaviour
         zones[7] = spot7;
         zones[8] = spot8;
 
-        curNode = new StateNode();
-        curNode.gs = new GameState();
-        curNode.gs.state = new char[3,3];
-        curNode.player = 'x';
+        Button btn = reset.GetComponent<Button>();
+        btn.onClick.AddListener(resetGame);
 
+        reset.gameObject.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
 
-    }
-
-    
-
-    public class StateNode
-    {
-        public GameState gs;
-        public StateNode parent;
-        public List<StateNode> children;
-        public int minimaxValue;
-        public char player;
-        public Tuple<int, int> action = new Tuple<int, int>(-1, -1);
-        public StateNode()
-        {
-            gs = new GameState();
-            children = new List<StateNode>();
-        }
-    }
-
-    public class GameState
-    {
-        public char[,] state;
-
-        public GameState()
-        {
-            state = new char[3, 3];
-        }
-
-        /// <summary>
-        /// Checks if this game state is equal to another game state
-        /// </summary>
-        /// <param name="gs"></param>
-        /// <returns></returns>
-        public bool Equals(GameState gs)
-        {
-
-            for (var i = 0; i < state.GetLength(0); i++)
-            {
-                for (var j = 0; j < state.GetLength(1); j++)
-                {
-                    if (state[i, j] != gs.state[i, j])
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns a fresh copy of this game state
-        /// </summary>
-        /// <returns></returns>
-        public GameState Copy()
-        {
-            var copy = new GameState();
-            copy.state = new char[3, 3];
-
-            for (var i = 0; i < 3; i++)
-            {
-                for (var j = 0; j < 3; j++)
-                {
-                    copy.state[i, j] = state[i, j];
-                }
-            }
-            return copy;
-        }
-    }
+    }  
 
     public void PlaneClick(int index)
     {
-        FillX(index);
-        //PassTurn();
+        if (zones[index].gameObject.transform.GetChild(0).gameObject.activeInHierarchy != true && zones[index].gameObject.transform.GetChild(1).gameObject.activeInHierarchy != true)
+        {
+            FillX(index);
+            bot.BotTurn();
+        }
+        else if (gameRunning == true)
+        {
+            player2.text = ("Illegal Space");
+        }
     }
 
     void FillX(int buttonNumber)
     {
         if (gameRunning == true)
         {
-            var row = (buttonNumber - 1) / 3;
-            var col = (buttonNumber - 1) % 3;
+            var row = (buttonNumber) / 3;
+            var col = (buttonNumber) % 3;
 
-            MoveThroughTree(Tuple.Create(row, col));
-            curNode.gs.state[row, col] = 'x';           
-            zones[buttonNumber].gameObject.transform.GetChild(0).gameObject.SetActive(true);
-            CheckState();
+            bot.IterateTree(Tuple.Create(row, col));
+            bot.curNode.gs.state[row, col] = 'x';           
+            zones[buttonNumber].gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            zones[buttonNumber].gameObject.GetComponentInChildren<ParticleSystem>().Play();
+            player1.text = (row + ", " + col);
+            bot.CheckState();
         }
     }
 
-    void FillO(int buttonNumber)
+    public void FillO(int buttonNumber)
     {
         if (gameRunning == true)
         {
-            var row = (buttonNumber - 1) / 3;
-            var col = (buttonNumber - 1) % 3;
+            var row = (buttonNumber) / 3;
+            var col = (buttonNumber) % 3;
 
-            MoveThroughTree(Tuple.Create(row, col));
-            curNode.gs.state[row, col] = 'o';
-            zones[buttonNumber].gameObject.transform.GetChild(1).gameObject.SetActive(true);
-            CheckState();
+            bot.IterateTree(Tuple.Create(row, col));
+            bot.curNode.gs.state[row, col] = 'o';
+            zones[buttonNumber].gameObject.transform.GetChild(0).gameObject.SetActive(true);
+            zones[buttonNumber].gameObject.GetComponentInChildren<ParticleSystem>().Play();
+            player2.text = (row + ", " + col);
+            bot.CheckState();
         }
     }
 
-    private void CheckState()
+    void resetGame()
     {
+        for (int i = 0; i < 9; i++)
+        {
+            zones[i].gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            zones[i].gameObject.transform.GetChild(1).gameObject.SetActive(false);
+        }
 
-        /*if (IsWinningState('o', curNode.gs) == true)
-        {
-            textBox1.text = "Computer won!";
-            gameRunning = false;
-        }
-        else if (IsWinningState('x', curNode.gs) == true)
-        {
-            textBox1.text = "Player won!";
-            gameRunning = false;
-        }
-        else if (IsDraw(curNode.gs) == true)
-        {
-            textBox1.text = "Draw";
-            gameRunning = false;
-        }*/
+        bot.Reboot();
+        gameRunning = true;
+        reset.gameObject.SetActive(false);
     }
 
-    private void MoveThroughTree(Tuple<int, int> action)
-    {
-        foreach (var n in curNode.children)
-        {
-            if (n.action.Item1 == action.Item1 && n.action.Item2 == action.Item2)
-            {
-                curNode = n;
-                Debug.Log("Moving down tree");
-                return;
-            }
-        }
-    }
+    
 }

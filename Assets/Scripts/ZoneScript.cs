@@ -26,8 +26,12 @@ public class ZoneScript : MonoBehaviour
 
     void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(0)){
-            Debug.Log(this.gameObject.name);
+        if (Input.GetMouseButtonDown(0))
+        {
+            //Debug.Log(this.gameObject.name);
+            var row = (zoneNum) / 3;
+            var col = (zoneNum) % 3;
+            Debug.Log("Player moving to " + row + ", " + col);
             main.PlaneClick(zoneNum);
         }
     }
