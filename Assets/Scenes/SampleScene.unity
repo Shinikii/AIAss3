@@ -22106,8 +22106,6 @@ MonoBehaviour:
   player02: {fileID: 683862428}
   main: {fileID: 2138761946}
   reset: {fileID: 724278392}
-  win1: {fileID: 1559095666}
-  win2: {fileID: 1805114397}
 --- !u!1 &1367321230
 GameObject:
   m_ObjectHideFlags: 0
@@ -47655,3 +47653,5 @@ MonoBehaviour:
   reset: {fileID: 724278392}
   player1: {fileID: 1245878103}
   player2: {fileID: 683862428}
+  win1: {fileID: 1559095666}
+  win2: {fileID: 1805114397}

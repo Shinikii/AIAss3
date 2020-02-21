@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static GameState;
 
 public class AIPlayer : MonoBehaviour
 {
@@ -13,9 +14,6 @@ public class AIPlayer : MonoBehaviour
     private int count;
 
     public Button reset;
-
-    public Text win1;
-    public Text win2;
 
     // Start is called before the first frame update
     void Start()
@@ -28,9 +26,7 @@ public class AIPlayer : MonoBehaviour
         var terminalNodes = new List<StateNode>();
         GetTerminalNodes(curNode, terminalNodes);
         Debug.Log("Generated " + terminalNodes.Count + " terminal nodes");
-        Debug.Log("Generated " + count + " nodes");
-        win1.text = " ";
-        win2.text = " ";
+        Debug.Log("Generated " + count + " nodes");       
     }
 
     public void Reboot()
@@ -44,39 +40,12 @@ public class AIPlayer : MonoBehaviour
         GetTerminalNodes(curNode, terminalNodes);
         Debug.Log("Generated " + terminalNodes.Count + " terminal nodes");
         Debug.Log("Generated " + count + " nodes");
-        win1.text = " ";
-        win2.text = " ";
     }
 
     // Update is called once per frame
     void Update()
     {
         
-    }
-
-    public class GameState
-    {
-        public char[,] state;
-
-        public GameState()
-        {
-            state = new char[3, 3];
-        }
-
-        public GameState Copy()
-        {
-            GameState copy = new GameState();
-            copy.state = new char[3, 3];
-
-            for (int c = 0; c < 3; c++)
-            {
-                for (int r = 0; r < 3; r++)
-                {
-                    copy.state[c, r] = state[c, r];
-                }
-            }
-            return copy;
-        }
     }
 
     public class StateNode
@@ -106,11 +75,21 @@ public class AIPlayer : MonoBehaviour
             {
                 if (root.gs.state[c, r] == 0 && IsTerminal(root.gs) == false)
                 {
-                    GameState copiedGameState = root.gs.Copy();
-                    copiedGameState.state[c, r] = startingPlayer;
+                    GameState cloneState = new GameState();
+                    cloneState.state = new char[3, 3];
+
+                    for (int a = 0; a < 3; a++)
+                    {
+                        for (int b = 0; b < 3; b++)
+                        {
+                            cloneState.state[a, b] = root.gs.state[a, b];
+                        }
+                    }
+
+                    cloneState.state[c, r] = startingPlayer;
 
                     StateNode newNode = new StateNode();
-                    newNode.gs = copiedGameState;
+                    newNode.gs = cloneState;
                     newNode.parent = root;
                     root.children.Add(newNode);
 
@@ -138,11 +117,11 @@ public class AIPlayer : MonoBehaviour
         // If we reach a terminal node then it's minimax value is simply the outcome of the game since there are no more moves to play
         if (root.children.Count == 0)
         {
-            if (IsWin('x', root.gs) == true)
+            if (GameController.IsWin('x', root.gs) == true)
             {
                 root.minimaxValue = 1;
             }
-            else if (IsWin('o', root.gs) == true)
+            else if (GameController.IsWin('o', root.gs) == true)
             {
                 root.minimaxValue = -1;
             }
@@ -156,7 +135,7 @@ public class AIPlayer : MonoBehaviour
             if (root.player == 'x')
             {
                 // the max player
-                int max = int.MinValue;
+                int max = -999999;
                 foreach (StateNode child in root.children)
                 {
                     if (child.minimaxValue > max)
@@ -170,7 +149,7 @@ public class AIPlayer : MonoBehaviour
             else
             {
                 // min player
-                int min = int.MaxValue;
+                int min = 999999;
 
                 foreach (StateNode child in root.children)
                 {
@@ -188,84 +167,10 @@ public class AIPlayer : MonoBehaviour
 
     private bool IsTerminal(GameState gs)
     {
-        return IsWin('x', gs) == true || IsWin('o', gs) == true || IsDraw(gs) == true;
+        return GameController.IsWin('x', gs) == true || GameController.IsWin('o', gs) == true || GameController.IsDraw(gs) == true;
     }
 
-    private bool IsWin(char player, GameState gs)
-    {
-        // check horizontally
-        for (int c = 0; c < 3; c++)
-        {
-            int horizontalCount = 0;
-            for (int r = 0; r < 3; r++)
-            {
-                if (gs.state[c, r] == player)
-                {
-                    horizontalCount++;
-                }
-            }
-
-            if (horizontalCount == 3)
-            {
-                return true;
-            }
-        }
-
-        // check vertically
-        for (int c = 0; c < 3; c++)
-        {
-            int verticalCount = 0;
-
-            for (int r = 0; r < 3; r++)
-            {
-                if (gs.state[r, c] == player)
-                {
-                    verticalCount++;
-                }
-            }
-
-            if (verticalCount == 3)
-            {
-                return true;
-            }
-        }
-
-        // check both diagonals
-
-        if (gs.state[0, 0] == player && gs.state[1, 1] == player && gs.state[2, 2] == player)
-        {
-            return true;
-        }
-        else if (gs.state[2, 0] == player && gs.state[1, 1] == player && gs.state[0, 2] == player)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool IsDraw(GameState gs)
-    {
-        int occupied = 0;
-
-        for (int c = 0; c < 3; c++)
-        {
-            for (int r = 0; r < 3; r++)
-            {
-                if (gs.state[c, r] != 0)
-                {
-                    occupied++;
-                }
-            }
-        }
-
-        if (occupied == 9 && IsWin('x', gs) == false && IsWin('o', gs) == false)
-        {
-            return true;
-        }
-
-        return false;
-    }
+    
 
     private void GetTerminalNodes(StateNode root, List<StateNode> terminalNodes)
     {
@@ -279,33 +184,6 @@ public class AIPlayer : MonoBehaviour
             {
                 GetTerminalNodes(node, terminalNodes);
             }
-        }
-    }
-
-    public void CheckState()
-    {
-
-        if (IsWin('o', curNode.gs) == true)
-        {
-            Debug.Log("Computer won!");
-            main.gameRunning = false;
-            reset.gameObject.SetActive(true);
-            win2.text = "Winner!";
-        }
-        else if (IsWin('x', curNode.gs) == true)
-        {
-           Debug.Log("Player won!");
-            main.gameRunning = false;
-            reset.gameObject.SetActive(true);
-            win1.text = "Winner!";
-        }
-        else if (IsDraw(curNode.gs) == true)
-        {
-            Debug.Log("Draw");
-            main.gameRunning = false;
-            reset.gameObject.SetActive(true);
-            win1.text = "Draw!";
-            win2.text = "Draw!";
         }
     }
 
@@ -330,7 +208,7 @@ public class AIPlayer : MonoBehaviour
 
             // choose the min minimax value
             StateNode minNode = null;
-            int min = int.MaxValue;
+            int min = 999999;
 
             foreach (StateNode n in curNode.children)
             {

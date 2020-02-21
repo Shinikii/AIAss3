@@ -6,12 +6,14 @@ public class ZoneScript : MonoBehaviour
 {
     public GameController main;
     public int zoneNum;
+    char zoneState;
     // Start is called before the first frame update
     void Start()
     {
         string temp = this.name;
         string[] temp2 = temp.Split('e');
         zoneNum = int.Parse(temp2[1]);
+        
         Debug.Log(zoneNum);
 
         this.gameObject.transform.GetChild(0).gameObject.SetActive(false);
